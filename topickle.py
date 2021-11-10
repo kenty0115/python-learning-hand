@@ -2,8 +2,6 @@ import mediapipe as mp
 import pickle
 import cv2
 from sklearn.neural_network import MLPClassifier
-from sklearn import svm
-from sklearn.multiclass import OneVsRestClassifier
 import numpy as np
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
@@ -40,21 +38,12 @@ with mp_holistic.Hands(
 
         if not success:
             print("Ignoring empty camera frame.")
-          # ビデオをロードする場合は、「continue」ではなく「break」を使用してください
             continue
 
-        # if firstloop is True:
-        #   image_ = np.zeros_like(image)
-        #   firstloop = False
-
-        # 後で自分撮りビューを表示するために画像を水平方向に反転し、BGR画像をRGBに変換
         image = cv2.cvtColor(cv2.flip(image, 1), cv2.COLOR_BGR2RGB)
-        # パフォーマンスを向上させるには、オプションで、参照渡しのためにイメージを書き込み不可としてマーク
         image.flags.writeable = False
         results = hands.process(image)
 
-        # 画像にランドマークアノテーションを描画
-        # image.flags.writeable = True
         image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
         if results.multi_hand_landmarks:
             for j, hand_landmarks in enumerate(results.multi_hand_landmarks):
@@ -69,16 +58,12 @@ with mp_holistic.Hands(
                     landmark_list.append(x_point)
                     landmark_list.append(y_point)
                 try:
-                    #                     print(landmark_list)
                     pl = clf.predict([landmark_list])
                     cv2.putText(image, str(
                         pl[0]), (0, 50*(j+1)), cv2.FONT_HERSHEY_PLAIN, 4, (0, 255, 0), 5, cv2.LINE_AA)
                 except:
                     pass
-        # image = cv2.bitwise_or(image, image_)
-        # cv2.resize(image_, (int(wide/10), int(high/10)))
         cv2.imshow('MediaPipe Hands', image)
-        # cv2.imshow('MediaPipe Hands_', image_)
         if cv2.waitKey(5) & 0xFF == 27:
             break
 cap.release()
